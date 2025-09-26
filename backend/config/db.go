@@ -3,11 +3,12 @@ package config
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/jarntae/Financial-project/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	// "time"
+	"encoding/json"
 )
 
 var db *gorm.DB
@@ -62,29 +63,44 @@ func SetupDatabase() {
 		&entity.ExchangeRate{},
 	)
 
-	// RoleAdmin := entity.Role{
-	// 	RoleName:   "admin",
-	// 	Permissions: map[string]interface{}{
-	// 		"can_manage_users":   true,
-	// 		"can_manage_roles":   true,
-	// 		"can_view_reports":   true,
-	// 		"can_edit_settings":  true,
-	// 		"can_delete_records": true,
-	// 	},
-	// 	IsActive:   true,
-	// }
-	// RoleUser := entity.Role{
-	// 	RoleName:   "user",
-	// 	Permissions: map[string]interface{}{
-	// 		"can_view_content": true,
-	// 		"can_post_comments": true,
-	// 		"can_edit_own_profile": true,
-	// 		"can_delete_own_comments": true,
-	// 		"can_like_content": true,
-	// 	},
-	// 	IsActive:   true,
-	// }
-	// db.Model(&entity.Role{}).Where("role_name = ?", "admin").FirstOrCreate(&RoleAdmin)
-	// db.Model(&entity.Role{}).Where("role_name = ?", "user").FirstOrCreate(&RoleUser)
+	// สร้าง role เริ่มต้นถ้ายังไม่มี
+	permissionsAdmin, _ := json.Marshal(map[string]bool{
+		"manage_users":      true,
+		"manage_categories": true,
+		"manage_accounts":   true,
+		"manage_settings":   true,
+	})
+	RoleAdmin := entity.Role{ 
+		RoleName: "admin",
+		Permissions: permissionsAdmin,
+		IsActive:  true,
+	}
+	db.FirstOrCreate(&RoleAdmin, entity.Role{RoleName: "admin"})
+	permissionsUser, _ := json.Marshal(map[string]bool{
+		"manage_own_data": true,
+		"manage_categories": true,
+	})
+	RoleUser := entity.Role{
+		RoleName: "user",
+		Permissions: permissionsUser,
+		IsActive:  true,
+	}
+	db.FirstOrCreate(&RoleUser, entity.Role{RoleName: "user"})
+
+	// สร้าง user admin เริ่มต้นถ้ายังไม่มี
+	password, _ := HashPassword("admin123")
+	UsesAdmin := entity.User{
+		FirstName: "Admin",
+		LastName:  "User",
+		Email:    "dev@gmail.com",
+		Password: password,
+		IsActive:  true,
+		EmailVerified: true,
+		LastLogin: time.Now(),
+		RoleID:   RoleAdmin.ID,
+	}
+	db.FirstOrCreate(&UsesAdmin, entity.User{Email: "dev@gmail.com"})
+
+	
 	fmt.Println("setup database")
 }

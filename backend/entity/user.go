@@ -8,8 +8,8 @@ import (
 // User แทนข้อมูลผู้ใช้งานหลักของระบบ
 type User struct {
     gorm.Model
-    FirstName string `gorm:"unique;not null" json:"first_name"`
-    LastName  string `gorm:"unique;not null" json:"last_name"`
+    FirstName string `gorm:"unique" json:"first_name"`
+    LastName  string `gorm:"unique" json:"last_name"`
     Email    string `gorm:"unique;not null" json:"email"`
     Password string `gorm:"not null" json:"password"`
     IsActive  bool   `gorm:"not null;default:true" json:"is_active"`
