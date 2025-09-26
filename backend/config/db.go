@@ -42,8 +42,24 @@ func ConnectionDB() {
 
 func SetupDatabase() {
 	db.AutoMigrate(
-		&entity.User{},
 		&entity.Role{},
+		&entity.User{},
+		&entity.UserSession{},
+		&entity.Category{},
+		&entity.UserCategory{},
+		&entity.Account{},
+		&entity.Portfolio{},
+		&entity.Transaction{},
+		&entity.RecurringRule{},
+		&entity.Holding{},
+		&entity.InvestmentTransaction{},
+		&entity.ImportBatch{},
+		&entity.ImportRecord{},
+		&entity.ActivityLog{},
+		&entity.DataChange{},
+		&entity.SystemSetting{},
+		&entity.UserPreference{},
+		&entity.ExchangeRate{},
 	)
 
 	// RoleAdmin := entity.Role{

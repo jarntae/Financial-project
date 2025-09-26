@@ -8,7 +8,10 @@ type Category struct {
 	gorm.Model
 	ParentID       *int       `json:"parent_id,omitempty"` //ใช้สำหรับทำ category แบบ tree/hierarchy (เช่น หมวดหมู่ย่อยมี parent)
 	Name           string     `gorm:"size:100;not null" json:"name"` // ชื่อหมวดหมู่
-	Type           string     `gorm:"size:20;not null" json:"type"` // income/expense/investment
+
+	CategoryTypeID uint       `gorm:"not null" json:"category_type_id"`
+	CategoryType   CategoryType `gorm:"foreignKey:CategoryTypeID"`
+	
 	Icon           string     `gorm:"size:50" json:"icon,omitempty"`
 	Color          string     `gorm:"size:7" json:"color,omitempty"`
 	Description    string     `gorm:"type:text" json:"description,omitempty"`
