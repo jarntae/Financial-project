@@ -3,6 +3,7 @@ import (
 	"github.com/jarntae/Financial-project/config"
 	"github.com/jarntae/Financial-project/routes"
 	"github.com/jarntae/Financial-project/services"
+	"github.com/jarntae/Financial-project/middlewares"
 	"github.com/joho/godotenv"
 	"log"
 	"github.com/gin-gonic/gin"
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(middlewares.CORSMiddleware())
 	// Setup routes
 	routes.SetupAuthRoutes(r, db, jwtWrapper)
 	routes.SetupAPIRoutes(r, db, jwtWrapper)

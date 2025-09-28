@@ -1,0 +1,32 @@
+@font-face {
+  font-family: Kanit;
+  src: url("../src/assets/font/Kanit-Bold.ttf");
+}
+@import "tailwindcss";
+
+:root {
+  --font-Kanit: "Kanit", sans-serif;
+  --color-primary: #E3E3E3;
+  --color-a1: #006381;
+  --color-a2: #0096AD;
+  --color-a3: #2DADC2;
+  --color-a4: #6EC4D3;
+  --color-a5: #9CD9E0;
+  --color-a6: #9CD9E0;
+  --color-b1: #3E8246;
+  --color-b2: #61A563;
+  --color-b3: #9ED0A3;
+  --color-b4: #9ED0A3;
+  --color-b5: #AFDEB4;
+  --color-b6: #DDEDD5;
+  --color-c1: #27A091;
+  --color-c1: #4FB5AB;
+  --color-c1: #7BCBC1;
+  --color-c1: #92DACD;
+  --color-c1: #C0E8DE;
+  --color-c1: #C0E8DE;
+  background-color: var(--color-primary);
+}
+body {
+  font-family: var(--font-Kanit);
+}
