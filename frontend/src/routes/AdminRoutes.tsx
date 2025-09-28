@@ -2,16 +2,15 @@ import { lazy } from "react";
 import type { RouteObject } from "react-router-dom";
 import Loadable from "../third-party/Loadable";
 import AdminLayout from "../components/FullLayout/admin/AdminLayout";
-import { Navigate } from "react-router-dom";
 
-const DashboardPage = Loadable(lazy(() => import("../page/Dashboard/index")));
+const DashboardPage = Loadable(lazy(() => import("../page/Admin/Dashboard/index")));
 
 const AdminRoutes = (): RouteObject => {
-  const isLoggedIn = localStorage.getItem("isLogin") === "true";
+
 
   return {
     path: "/admin",
-    element: isLoggedIn ? <AdminLayout /> : <Navigate to="/" replace />,
+    element: <AdminLayout /> ,
     children: [
       {
         path: "dashboard",

@@ -1,19 +1,19 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
+// import React from "react";
+// import { Navigate } from "react-router-dom";
 
-interface PrivateRouteProps {
-  element: React.ReactElement;
-  allowedRoles: string[]; // role ที่อนุญาต
-}
+// interface PrivateRouteProps {
+//   element: React.ReactElement;
+//   allowedRoles: string[]; // role ที่อนุญาต
+// }
 
-const PrivateRoute: React.FC<PrivateRouteProps> = ({ element, allowedRoles }) => {
-  const role = localStorage.getItem("role") || "";
+// const PrivateRoute: React.FC<PrivateRouteProps> = ({ element, allowedRoles }) => {
+//   const role = localStorage.getItem("role") || "";
 
-  if (!allowedRoles.includes(role)) {
-    return <Navigate to="/" replace />;
-  }
+//   if (!allowedRoles.includes(role)) {
+//     return <Navigate to="/" replace />;
+//   }
 
-  return element;
-};
+//   return element;
+// };
 
-export default PrivateRoute;
+// export default PrivateRoute;

@@ -88,7 +88,7 @@ func SetupDatabase() {
 	db.FirstOrCreate(&RoleUser, entity.Role{RoleName: "user"})
 
 	// สร้าง user admin เริ่มต้นถ้ายังไม่มี
-	password, _ := HashPassword("admin123")
+	password, _ := HashPassword("123456")
 	UsesAdmin := entity.User{
 		FirstName: "Admin",
 		LastName:  "User",

@@ -1,54 +1,42 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, Outlet } from "react-router-dom";
+import React from "react";
+import { Outlet, Navigate } from "react-router-dom";
 import { Breadcrumb, Layout } from "antd";
-
-import Sidebar from "../../Sidebar/Sidebar";
+import { useAuth } from "../../../services/https/useAuth";
+import SidebarAdmin from "../../Sidebar/Admin/sidebar";
 import Topbar from "../../Topber/Topbar";
-import LoginPage from "../../../page/authentication/Login/Login";
 
-const { Content } = Layout;
+const { Header, Content } = Layout;
 
 const AdminLayout: React.FC = () => {
-  const location = useLocation();
-  const [checkLogin, setCheckLogin] = useState(false);
-  const isLoggedIn = localStorage.getItem("isLogin") === "true";
-  console.log("check-login", isLoggedIn);
+  const { user, loading, isLogin } = useAuth();
 
-  useEffect(() => {
-    const isLogin = localStorage.getItem("isLogin") === "true";
-    const notLoginPage = location.pathname !== "/";
-    setCheckLogin(isLogin && notLoginPage);
-  }, [location.pathname]);
+  if (loading) return <div>Loading...</div>;
+  if (!isLogin || user?.role !== "admin") return <Navigate to="/" replace />;
+  console.log("AdminLayout -> user", user);
+  console.log("AdminLayout -> isLogin", isLogin);
 
-  const Role = localStorage.getItem("role") || "";
-  console.log("check-Role", Role);
-
-  if (isLoggedIn && Role == "admin") {
-    return (
-      <div>
-        <Layout
-          style={{
-            minHeight: "100vh",
-            backgroundColor: "var(--color-primary)",
-            fontFamily: "var(--font-Kanit)",
-          }}
-        >
-          <Topbar />
-          <Layout>
-            <Sidebar />
-            <Content style={{ marginTop: "0px" }}>
-              <Breadcrumb />
-              <div>
-                <Outlet /> {/* ตรงนี้จะ render หน้า child เช่น Dashboard */}
-              </div>
-            </Content>
-          </Layout>
-        </Layout>
-      </div>
-    );
-  } else {
-    return <LoginPage />;
-  }
+  return (
+    <Layout
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "var(--color-primary)",
+        fontFamily: "var(--font-Kanit)",
+      }}
+    >
+      <Header style={{ padding: 0, height: 120, background: "var(--color-a3)" }}>
+        <Topbar />
+      </Header>
+      <Layout hasSider className="flex-1 min-h-0 flex">
+        <SidebarAdmin />
+        <Content className="min-h-0" style={{ marginTop: "0px" }}>
+          <Breadcrumb />
+          <div>
+            <Outlet />
+          </div>
+        </Content>
+      </Layout>
+    </Layout>
+  );
 };
 
 export default AdminLayout;

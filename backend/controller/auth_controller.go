@@ -29,58 +29,108 @@ type LoginInput struct {
 
 // Signup handler
 func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var input SignupInput
-		if err := c.ShouldBindJSON(&input); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
+    return func(c *gin.Context) {
+        var input SignupInput
+        if err := c.ShouldBindJSON(&input); err != nil {
+            c.JSON(http.StatusBadRequest, gin.H{
+                "error": "Invalid input data",
+                "details": err.Error(),
+            })
+            return
+        }
 
-		// Check existing email
-		var user entity.User
-		if err := db.Where("email = ?", input.Email).First(&user).Error; err == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
-			return
-		}
+        // Check existing email with better error handling
+        var user entity.User
+        err := db.Where("email = ?", input.Email).First(&user).Error
+        if err != nil {
+            if err != gorm.ErrRecordNotFound {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+                return
+            }
+        } else {
+            c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+            return
+        }
 
-		hashedPassword, _ := config.HashPassword(input.Password)
+        // Hash password with error handling
+        hashedPassword, err := config.HashPassword(input.Password)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Password processing failed"})
+            return
+        }
 
-		// Default role "user"
-		var role entity.Role
-		if err := db.Where("role_name = ?", "user").First(&role).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Default role not found"})
-			return
-		}
+        // Get default role with better error message
+        var role entity.Role
+        if err := db.Where("role_name = ?", "user").First(&role).Error; err != nil {
+            if err == gorm.ErrRecordNotFound {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "User role not configured in system"})
+            } else {
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign user role"})
+            }
+            return
+        }
 
-		user = entity.User{
-			FirstName: input.FirstName,
-			LastName:  input.LastName,
-			Email:     input.Email,
-			Password:  hashedPassword,
-			RoleID:    role.ID,
-			IsActive:  true,
-		}
+        // Create new user
+        newUser := entity.User{
+            FirstName: input.FirstName,
+            LastName:  input.LastName,
+            Email:     input.Email,
+            Password:  hashedPassword,
+            RoleID:    role.ID,
+            IsActive:  true,
+        }
 
-		if err := db.Create(&user).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Signup failed"})
-			return
-		}
+        if err := db.Create(&newUser).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error": "Failed to create user account",
+                "details": err.Error(),
+            })
+            return
+        }
 
-		// Generate JWT
-		token, _ := jwtWrapper.GenerateToken(user.Email, role.RoleName)
+        // Generate JWT with error handling
+        token, err := jwtWrapper.GenerateToken(newUser.Email, role.RoleName)
+        if err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate authentication token"})
+            return
+        }
 
-		// Create UserSession
-		session := entity.UserSession{
-			UserID:     user.ID,
-			Token:      token,
-			DeviceInfo: datatypes.JSON([]byte(`{"device":"browser"}`)),
-			IPAddress:  c.ClientIP(),
-			ExpiresAt:  time.Now().Add(time.Hour * time.Duration(jwtWrapper.ExpirationHours)),
-		}
-		db.Create(&session)
-        var Role = role.RoleName
-		c.JSON(http.StatusOK, gin.H{"token": token,"Role":Role ,"message": "Signup successful"})
-	}
+        // Create session
+        session := entity.UserSession{
+            UserID:     newUser.ID,
+            Token:      token,
+            DeviceInfo: datatypes.JSON([]byte(`{"device":"browser"}`)),
+            IPAddress:  c.ClientIP(),
+            ExpiresAt:  time.Now().Add(time.Hour * time.Duration(jwtWrapper.ExpirationHours)),
+        }
+
+        if err := db.Create(&session).Error; err != nil {
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session"})
+            return
+        }
+
+        // Set cookie
+        c.SetCookie(
+            "token",    
+            token,      
+            3600,       
+            "/",        
+            "",         
+            false,      
+            true,       
+        )
+
+        // Return success response
+        c.JSON(http.StatusOK, gin.H{
+            "message": "Signup successful",
+            "role": role.RoleName,
+            "user": gin.H{
+                "email": newUser.Email,
+                "firstName": newUser.FirstName,
+                "lastName": newUser.LastName,
+            },
+        })
+    }
 }
 
 // Login handler
@@ -116,7 +166,17 @@ func Login(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
 		}
 		db.Create(&session)
 
-		c.JSON(http.StatusOK, gin.H{"token": token, "message": "Login successful", "role": user.Role.RoleName})
+		c.SetCookie(
+			"token",         // ชื่อ cookie
+			token,           // JWT token ที่สร้าง
+			3600,            // อายุ cookie (วินาที)
+			"/",             // path
+			"",              // domain ("" สำหรับ local)
+			false,           // secure (true ถ้าใช้ https)
+			true,            // httpOnly
+		)
+
+		c.JSON(http.StatusOK, gin.H{"message": "Login successful", "role": user.Role.RoleName, "token": token})
 	}
 }
 
@@ -132,4 +192,21 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 		db.Delete(&entity.UserSession{}, sessionID)
 		c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 	}
+}
+
+func GetMe(db *gorm.DB) gin.HandlerFunc {
+    return func(c *gin.Context) {
+        email, _ := c.Get("email")
+        var user entity.User
+        if err := db.Preload("Role").Where("email = ?", email).First(&user).Error; err != nil {
+            c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+            return
+        }
+        c.JSON(http.StatusOK, gin.H{
+            "email": user.Email,
+            "role":  user.Role.RoleName,
+            "firstName": user.FirstName,
+            "lastName": user.LastName,
+        })
+    }
 }

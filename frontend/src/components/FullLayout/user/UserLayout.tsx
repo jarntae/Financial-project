@@ -1,54 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, Outlet } from "react-router-dom";
-import { Breadcrumb, Layout } from "antd";
-
-import Sidebar from "../../Sidebar/Sidebar";
-import Topbar from "../../Topber/Topbar";
-import LoginPage from "../../../page/authentication/Login/Login";
-
-const { Content } = Layout;
+import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import Topbar from '../../Topber/Topbar';
+import SidebarUser from '../../Sidebar/User/Sidebar';
+import AddTransactionFAB from '../../../page/User/TransactionForm/AddTransactionFAB';
 
 const UserLayout: React.FC = () => {
   const location = useLocation();
-  const [checkLogin, setCheckLogin] = useState(false);
-  const isLoggedIn = localStorage.getItem("isLogin") === "true";
-  console.log("check-login", isLoggedIn);
+  const showFAB = !location.pathname.includes('/transactions/new');
 
-  useEffect(() => {
-    const isLogin = localStorage.getItem("isLogin") === "true";
-    const notLoginPage = location.pathname !== "/";
-    setCheckLogin(isLogin && notLoginPage);
-  }, [location.pathname]);
-
-  const Role = localStorage.getItem("role") || "";
-  console.log("check-Role", Role);
-
-  if (isLoggedIn && Role == "user") {
-    return (
-      <div>
-        <Layout
-          style={{
-            minHeight: "100vh",
-            backgroundColor: "var(--color-primary)",
-            fontFamily: "var(--font-Kanit)",
-          }}
-        >
-          <Topbar />
-          <Layout>
-            <Sidebar />
-            <Content style={{ marginTop: "0px" }}>
-              <Breadcrumb />
-              <div>
-                <Outlet /> {/* ตรงนี้จะ render หน้า child */}
-              </div>
-            </Content>
-          </Layout>
-        </Layout>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Topbar />
+      <div className="flex">
+        <SidebarUser />
+        <main className="flex-1 p-6">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
+        </main>
       </div>
-    );
-  } else {
-    return <LoginPage />;
-  }
+      {showFAB && <AddTransactionFAB />}
+    </div>
+  );
 };
 
 export default UserLayout;

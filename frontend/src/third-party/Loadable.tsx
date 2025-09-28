@@ -1,14 +1,15 @@
-import { Suspense } from "react";
-import type { ComponentType } from "react";
-import Loader from "./Loader";
+import React, { Suspense } from 'react';
 
-const Loadable =
-  <P extends object>(Component: ComponentType<P>): ComponentType<P> =>
-  (props: P) =>
-    (
-      <Suspense fallback={<Loader />}>
-        <Component {...props} />
-      </Suspense>
-    );
+const Loadable = (Component: React.LazyExoticComponent<any>) => (props: any) => {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2DADC2]" />
+      </div>
+    }>
+      <Component {...props} />
+    </Suspense>
+  );
+};
 
 export default Loadable;
