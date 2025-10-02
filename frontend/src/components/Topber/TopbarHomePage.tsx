@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import LoginPage from "../../page/authentication/Login/Login";
 import SignUp from "../../page/authentication/SignUp/SignUp";
 import dollar from "../../assets/dollar.png";
-import { motion } from "framer-motion";
+import { motion ,AnimatePresence } from "framer-motion";
 
 const TopbarHomePage: React.FC = () => {
   const [modalType, setModalType] = useState<"login" | "signup" | null>(null);
@@ -60,13 +60,15 @@ const TopbarHomePage: React.FC = () => {
       </motion.div>
 
       {/* Modal */}
+      <AnimatePresence>
       {modalType && (
         <motion.div 
-          initial={{ opacity: 0 }}
+          initial={{ opacity: 0}}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
         >
+          
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -77,7 +79,7 @@ const TopbarHomePage: React.FC = () => {
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", damping: 20 }}
-            className="relative bg-gradient-to-br from-white to-gray-50 rounded-[20px] shadow-2xl w-[1200px] h-[800px] z-10 overflow-hidden"
+            className="relative bg-gradient-to-br from-white to-gray-50 rounded-[20px] shadow-2xl w-[1200px] h-[900px] z-10 overflow-hidden"
           >
             <button
               onClick={closeModal}
@@ -97,6 +99,7 @@ const TopbarHomePage: React.FC = () => {
           </motion.div>
         </motion.div>
       )}
+      </AnimatePresence>
     </>
   );
 };

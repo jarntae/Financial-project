@@ -6,5 +6,6 @@ import (
 type TypeAccount struct {
 	gorm.Model
 	Name string `gorm:"unique;not null" json:"name"` // 'bank', 'credit_card', 'wallet', etc.
+	Description string `json:"description,omitempty"`
 	Accounts []Account `gorm:"foreignKey:TypeAccountID"`
 }

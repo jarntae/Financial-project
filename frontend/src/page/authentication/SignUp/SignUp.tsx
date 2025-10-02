@@ -3,14 +3,8 @@ import dollar from "../../../assets/dollar.png";
 import financialProfit from "../../../assets/financial-profit.png";
 import { SetSignUp } from "../../../services/https";
 import type { SignUpInterface } from "../../../interface/SignUp";
-
-interface FormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
+import { message } from "antd";
+import { Sleep } from "../../../utils/sleep";
 
 interface FormErrors {
   [key: string]: string;
@@ -21,12 +15,13 @@ interface SignUpProps {
 }
 
 const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
-  const [formData, setFormData] = useState<FormData>({
-    firstName: "",
-    lastName: "",
+  const [messageApi, contextHolder] = message.useMessage();
+  const [formData, setFormData] = useState<SignUpInterface>({
+    first_name: "",
+    last_name: "",
     email: "",
     password: "",
-    confirmPassword: "",
+    confirm_password: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<{ [key: string]: boolean }>({});
@@ -59,12 +54,12 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
-    if (!formData.firstName) {
-      newErrors.firstName = "กรุณากรอกชื่อ";
+    if (!formData.first_name) {
+      newErrors.first_name = "กรุณากรอกชื่อ";
     }
 
-    if (!formData.lastName) {
-      newErrors.lastName = "กรุณากรอกนามสกุล";
+    if (!formData.last_name) {
+      newErrors.last_name = "กรุณากรอกนามสกุล";
     }
 
     if (!formData.email) {
@@ -79,10 +74,10 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
       newErrors.password = "รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร";
     }
 
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "กรุณายืนยันรหัสผ่าน";
-    } else if (formData.confirmPassword !== formData.password) {
-      newErrors.confirmPassword = "รหัสผ่านไม่ตรงกัน";
+    if (!formData.confirm_password) {
+      newErrors.confirm_password = "กรุณายืนยันรหัสผ่าน";
+    } else if (formData.confirm_password !== formData.password) {
+      newErrors.confirm_password = "รหัสผ่านไม่ตรงกัน";
     }
 
     setErrors(newErrors);
@@ -91,7 +86,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const touchAll = Object.keys(formData).reduce(
       (acc, key) => ({ ...acc, [key]: true }),
       {}
@@ -103,21 +98,25 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
       setApiError("");
 
       const signUpData: SignUpInterface = {
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+        first_name: formData.first_name,
+        last_name: formData.last_name,
         email: formData.email,
         password: formData.password,
-        confirm_password: formData.confirmPassword
+        confirm_password: formData.confirm_password,
       };
 
       try {
         const result = await SetSignUp(signUpData);
         if (result.success) {
+          messageApi.success("สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ");
+          await Sleep(2000);
           onSwitchToLogin();
         } else {
+          messageApi.error(result.error || "เกิดข้อผิดพลาดในการลงทะเบียน");
           setApiError(result.error || "เกิดข้อผิดพลาดในการลงทะเบียน");
         }
       } catch (error) {
+        messageApi.error("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
         setApiError("เกิดข้อผิดพลาดในการเชื่อมต่อกับระบบ");
       } finally {
         setIsLoading(false);
@@ -125,7 +124,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
     }
   };
 
-  const getInputClassName = (fieldName: keyof FormData) => `
+  const getInputClassName = (fieldName: keyof SignUpInterface) => `
     w-full px-4 py-2 border rounded-lg transition-colors
     ${
       touched[fieldName] && errors[fieldName]
@@ -135,18 +134,21 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
   `;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-full">
+      {contextHolder}
       {/* Left Side - Image */}
-      <div className="hidden md:flex md:w-1/2 bg-[#2DADC2] p-8 flex-col items-center justify-center text-white">
-        <div className="flex items-center gap-4 mb-8">
+      <div className="w-1/2 bg-[#2DADC2] p-12 flex flex-col items-center justify-center text-white rounded-r-4xl">
+        <div className="flex items-center gap-6 mb-8 flex-col">
           <img src={dollar} alt="Logo" className="w-16 h-16" />
-          <h2 className="text-3xl font-bold">
-            ยินดีต้อนรับเข้าสู่
-            <br />
-            ระบบจัดการการเงินส่วนบุคคล
-          </h2>
+
+          <h2 className="text-4xl font-bold">ยินดีต้อนรับเข้าสู่</h2>
+          <h2 className="text-4xl font-bold">ระบบจัดการการเงินส่วนบุคคล</h2>
         </div>
-        <img src={financialProfit} alt="Financial" className="max-w-md w-full" />
+        <img
+          src={financialProfit}
+          alt="Financial"
+          className="max-w-md w-full drop-shadow-2xl"
+        />
         <p className="mt-8 text-center text-lg">
           เครื่องมือที่จะช่วยให้คุณติดตามและวางแผนการใช้จ่าย
           <br />
@@ -168,36 +170,36 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
           <div>
             <input
               type="text"
-              name="firstName"
+              name="first_name"
               placeholder="ชื่อ"
-              value={formData.firstName}
+              value={formData.first_name}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={getInputClassName("firstName")}
+              className={getInputClassName("first_name")}
             />
-            {touched.firstName && errors.firstName && (
-              <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>
+            {touched.first_name && errors.first_name && (
+              <p className="mt-1 text-sm text-red-500">{errors.first_name}</p>
             )}
           </div>
 
           <div>
             <input
               type="text"
-              name="lastName"
+              name="last_name"
               placeholder="นามสกุล"
-              value={formData.lastName}
+              value={formData.last_name}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={getInputClassName("lastName")}
+              className={getInputClassName("last_name")}
             />
-            {touched.lastName && errors.lastName && (
-              <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>
+            {touched.last_name && errors.last_name && (
+              <p className="mt-1 text-sm text-red-500">{errors.last_name}</p>
             )}
           </div>
 
           <div>
             <input
-              type="email"
+              type="text"
               name="email"
               placeholder="อีเมล"
               value={formData.email}
@@ -228,15 +230,17 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
           <div>
             <input
               type="password"
-              name="confirmPassword"
+              name="confirm_password"
               placeholder="ยืนยันรหัสผ่าน"
-              value={formData.confirmPassword}
+              value={formData.confirm_password}
               onChange={handleChange}
               onBlur={handleBlur}
-              className={getInputClassName("confirmPassword")}
+              className={getInputClassName("confirm_password")}
             />
-            {touched.confirmPassword && errors.confirmPassword && (
-              <p className="mt-1 text-sm text-red-500">{errors.confirmPassword}</p>
+            {touched.confirm_password && errors.confirm_password && (
+              <p className="mt-1 text-sm text-red-500">
+                {errors.confirm_password}
+              </p>
             )}
           </div>
 
@@ -251,7 +255,10 @@ const SignUp: React.FC<SignUpProps> = ({ onSwitchToLogin }) => {
 
         <p className="mt-4 text-gray-600">
           มีบัญชีอยู่แล้ว?{" "}
-          <button onClick={onSwitchToLogin} className="text-[#2DADC2] hover:underline">
+          <button
+            onClick={onSwitchToLogin}
+            className="text-[#2DADC2] hover:underline"
+          >
             เข้าสู่ระบบ
           </button>
         </p>

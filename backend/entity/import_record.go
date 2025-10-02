@@ -7,6 +7,7 @@ import (
 type ImportRecord struct {
 	gorm.Model
 	BatchID    uint           `gorm:"not null" json:"batch_id"`
+	Batch      ImportBatch    `gorm:"foreignKey:BatchID"`
 	
 	RawData                 datatypes.JSON `gorm:"type:jsonb;not null" json:"raw_data"`
 	ParsedData              datatypes.JSON `gorm:"type:jsonb" json:"parsed_data,omitempty"`

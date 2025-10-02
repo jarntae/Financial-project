@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"os"
 	"time"
-
+	"encoding/json"
 	"github.com/jarntae/Financial-project/entity"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"encoding/json"
 )
 
 var db *gorm.DB
@@ -101,6 +100,40 @@ func SetupDatabase() {
 	}
 	db.FirstOrCreate(&UsesAdmin, entity.User{Email: "dev@gmail.com"})
 
+	currency := entity.Currency{
+		Code:     "THB",
+		Name:     "Thai Baht",
+		Symbol:   "฿",
+	}
+	db.FirstOrCreate(&currency, entity.Currency{Code: "THB"})
+	currencyUSD := entity.Currency{
+		Code:     "USD",
+		Name:     "US Dollar",
+		Symbol:   "$",
+	}
+	db.FirstOrCreate(&currencyUSD, entity.Currency{Code: "USD"})
+	currencyEUR := entity.Currency{
+		Code:     "EUR",
+		Name:     "Euro",
+		Symbol:   "€",
+	}
+	db.FirstOrCreate(&currencyEUR, entity.Currency{Code: "EUR"})
+	typeAccountBank := entity.TypeAccount{
+		Name: "bank",
+		Description: "บัญชีธนาคาร",
+	}
+	db.FirstOrCreate(&typeAccountBank, entity.TypeAccount{Name: "bank"})
+	typeAccountCreditCard := entity.TypeAccount{
+		Name: "credit_card",
+		Description: "บัตรเครดิต",
+	}
+	db.FirstOrCreate(&typeAccountCreditCard, entity.TypeAccount{Name: "credit_card"})
+	typeAccountWallet := entity.TypeAccount{
+		Name: "wallet",
+		Description: "กระเป๋าเงินสด",
+	}
+	db.FirstOrCreate(&typeAccountWallet, entity.TypeAccount{Name: "wallet"})
+	
 	
 	fmt.Println("setup database")
 }

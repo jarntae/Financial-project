@@ -33,7 +33,7 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
         var input SignupInput
         if err := c.ShouldBindJSON(&input); err != nil {
             c.JSON(http.StatusBadRequest, gin.H{
-                "error": "Invalid input data",
+                "error": "ข้อมูลไม่ถูกต้อง",
                 "details": err.Error(),
             })
             return
@@ -44,18 +44,18 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
         err := db.Where("email = ?", input.Email).First(&user).Error
         if err != nil {
             if err != gorm.ErrRecordNotFound {
-                c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในฐานข้อมูล"})
                 return
             }
         } else {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+            c.JSON(http.StatusBadRequest, gin.H{"error": "อีเมลนี้มีอยู่แล้ว"})
             return
         }
 
         // Hash password with error handling
         hashedPassword, err := config.HashPassword(input.Password)
         if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Password processing failed"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการประมวลผลรหัสผ่าน"})
             return
         }
 
@@ -63,9 +63,9 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
         var role entity.Role
         if err := db.Where("role_name = ?", "user").First(&role).Error; err != nil {
             if err == gorm.ErrRecordNotFound {
-                c.JSON(http.StatusInternalServerError, gin.H{"error": "User role not configured in system"})
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่พบบทบาทผู้ใช้ในระบบ"})
             } else {
-                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to assign user role"})
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถกำหนดบทบาทผู้ใช้ได้"})
             }
             return
         }
@@ -82,7 +82,7 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
 
         if err := db.Create(&newUser).Error; err != nil {
             c.JSON(http.StatusInternalServerError, gin.H{
-                "error": "Failed to create user account",
+                "error": "ไม่สามารถสร้างผู้ใช้ใหม่ได้",
                 "details": err.Error(),
             })
             return
@@ -91,7 +91,7 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
         // Generate JWT with error handling
         token, err := jwtWrapper.GenerateToken(newUser.Email, role.RoleName)
         if err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate authentication token"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "เกิดข้อผิดพลาดในการสร้างโทเค็นการตรวจสอบสิทธิ์"})
             return
         }
 
@@ -105,7 +105,7 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
         }
 
         if err := db.Create(&session).Error; err != nil {
-            c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create session"})
+            c.JSON(http.StatusInternalServerError, gin.H{"error": "ไม่สามารถสร้างเซสชันผู้ใช้ได้"})
             return
         }
 
@@ -122,7 +122,7 @@ func Signup(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
 
         // Return success response
         c.JSON(http.StatusOK, gin.H{
-            "message": "Signup successful",
+            "message": "ลงทะเบียนสำเร็จ",
             "role": role.RoleName,
             "user": gin.H{
                 "email": newUser.Email,
@@ -144,12 +144,12 @@ func Login(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
 
 		var user entity.User
 		if err := db.Preload("Role").Where("email = ?", input.Email).First(&user).Error; err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "อีเมลหรือรหัสผ่านไม่ถูกต้อง"})
 			return
 		}
 
 		if !config.CheckPasswordHash(input.Password, user.Password) {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "อีเมลหรือรหัสผ่านไม่ถูกต้อง"})
 			return
 		}
 
@@ -176,7 +176,7 @@ func Login(db *gorm.DB, jwtWrapper *services.JwtWrapper) gin.HandlerFunc {
 			true,            // httpOnly
 		)
 
-		c.JSON(http.StatusOK, gin.H{"message": "Login successful", "role": user.Role.RoleName, "token": token})
+		c.JSON(http.StatusOK, gin.H{"message": "เข้าสู่ระบบสำเร็จ", "role": user.Role.RoleName, "token": token})
 	}
 }
 
@@ -185,12 +185,12 @@ func Logout(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		sessionID, exists := c.Get("session_id")
 		if !exists {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "No session found"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "ไม่พบเซสชัน"})
 			return
 		}
 
 		db.Delete(&entity.UserSession{}, sessionID)
-		c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+		c.JSON(http.StatusOK, gin.H{"message": "ออกจากระบบสำเร็จ"})
 	}
 }
 
@@ -199,7 +199,7 @@ func GetMe(db *gorm.DB) gin.HandlerFunc {
         email, _ := c.Get("email")
         var user entity.User
         if err := db.Preload("Role").Where("email = ?", email).First(&user).Error; err != nil {
-            c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+            c.JSON(http.StatusNotFound, gin.H{"error": "ไม่พบผู้ใช้"})
             return
         }
         c.JSON(http.StatusOK, gin.H{

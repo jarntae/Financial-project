@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"time"
 	"gorm.io/gorm"
 	"gorm.io/datatypes"
 )
@@ -19,7 +18,6 @@ type ActivityLog struct {
 	NewValues  datatypes.JSON `gorm:"type:jsonb" json:"new_values,omitempty"`
 	IPAddress  string         `gorm:"type:inet" json:"ip_address,omitempty"`
 	UserAgent  string         `gorm:"type:text" json:"user_agent,omitempty"`
-	CreatedAt  time.Time      `gorm:"autoCreateTime" json:"created_at"`
 }
 
 

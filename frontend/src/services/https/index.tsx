@@ -47,6 +47,7 @@ async function SetSignUp(data: SignUpInterface) {
       return {
         success: true,
         role: result.role,
+        message: result.message,
       };
     } else {
       return {

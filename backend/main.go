@@ -7,6 +7,8 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"github.com/gin-gonic/gin"
+	"os"
+	"strconv"
 
 )
 const PORT = "8080"
@@ -22,10 +24,13 @@ func main() {
 	config.SetupDatabase()
 	db := config.DB()
 
+	secret := os.Getenv("JWT_SECRET")
+	expHours, _ := strconv.ParseInt(os.Getenv("JWT_EXPIRATION_HOURS"), 10, 64)
+
 	jwtWrapper := &services.JwtWrapper{
-		SecretKey:       "super-secret-key",
+		SecretKey:       secret,
 		Issuer:          "FinancialApp",
-		ExpirationHours: 1,
+		ExpirationHours: expHours,
 	}
 
 	r := gin.Default()

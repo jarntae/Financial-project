@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { 
   ChevronFirst, 
   LayoutDashboard, 
-  Settings, 
+  // Settings, 
   Receipt, 
   FolderTree,
   PieChart,
@@ -48,11 +48,11 @@ export default function SidebarUser({
       icon: CreditCard,
       title: "การชำระเงิน"
     },
-    {
-      to: "/user/settings",
-      icon: Settings,
-      title: "ตั้งค่า"
-    }
+    // {
+    //   to: "/user/settings",
+    //   icon: Settings,
+    //   title: "ตั้งค่า"
+    // }
   ];
 
   // ...existing code for isActiveRoute and MenuLink...
@@ -85,8 +85,8 @@ export default function SidebarUser({
           whileTap={{ scale: 0.95 }}
           onClick={() => setCollapsed((v) => !v)}
           className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-          aria-label="Toggle sidebar"
-          title="Toggle sidebar"
+          aria-label="ไอคอนสลับแถบด้านข้าง"
+          title="ไอคอนสลับแถบด้านข้าง"
         >
           <ChevronFirst
             className={`${
@@ -110,7 +110,7 @@ export default function SidebarUser({
           initial="hidden"
           animate="show"
         >
-          {menuItems.map((item, index) => (
+          {menuItems.map((item) => (
             <motion.li
               key={item.to}
               variants={{
@@ -122,6 +122,8 @@ export default function SidebarUser({
                 to={item.to}
                 icon={item.icon}
                 title={item.title}
+                collapsed={collapsed}
+                currentPath={location.pathname}  // <-- ส่ง path ปัจจุบัน
               />
             </motion.li>
           ))}
