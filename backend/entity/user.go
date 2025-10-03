@@ -15,10 +15,14 @@ type User struct {
     IsActive  bool   `gorm:"not null;default:true" json:"is_active"`
     EmailVerified bool `gorm:"not null;default:false" json:"email_verified"` 
     LastLogin time.Time `json:"last_login"`
+
     RoleID   uint   `gorm:"not null" json:"role_id"`
     Role     Role   `gorm:"foreignKey:RoleID"`
-    UserCategories []UserCategory `gorm:"foreignKey:UserID"`
+
     UserSessions   []UserSession  `gorm:"foreignKey:UserID"`
     Accounts       []Account      `gorm:"foreignKey:UserID"`
-    DataChanges   []DataChange  `gorm:"foreignKey:UserID"`
+    Transactions   []Transaction  `gorm:"foreignKey:UserID"`
+    Budgets        []Budget       `gorm:"foreignKey:UserID"`
+    // ExpenseCategories []ExpenseCategory `gorm:"foreignKey:UserID"`
+    Debts          []Debt       `gorm:"foreignKey:UserID"`
 }
